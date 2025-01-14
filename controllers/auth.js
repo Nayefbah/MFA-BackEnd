@@ -5,8 +5,8 @@ const router = require('express').Router()
 
 router.post('/signup', async (req, res) => {
   try {
-    const { username, password, phoneNumber } = req.body
-    if (!username || !password || !phoneNumber)
+    const { username, password, email } = req.body
+    if (!username || !password || !email)
       return res.status(400).json({ error: 'Missing required fields.' })
     const userExist = await User.findOne({ username })
     if (userExist)
@@ -15,10 +15,10 @@ router.post('/signup', async (req, res) => {
     const user = await User.create({
       username,
       password: hashedPassword,
-      phoneNumber
+      email
     })
     const token = signToken(user)
-    return res.status(201).json({ message: 'User created', token })
+    return res.status(201).json({ message: 'User created successfully', token })
   } catch (error) {
     console.error(error)
     res.status(500).json({ error: 'Something went wrong!' })
