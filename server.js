@@ -4,6 +4,7 @@ const express = require('express')
 const app = express()
 const mongoose = require('mongoose')
 const cors = require('cors')
+const cookieParser = require('cookie-parser')
 const authRouter = require('./controllers/auth')
 const userRouter = require('./controllers/user')
 const { verifyToken } = require('./middleware/jwtUtils')
@@ -13,6 +14,7 @@ mongoose.connection.on('connected', () => {
 })
 const PORT = process.env.PORT
 app.use(express.json())
+app.use(cookieParser())
 app.use(cors())
 
 // Routes go here

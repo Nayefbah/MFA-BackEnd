@@ -1,6 +1,7 @@
 const { signToken } = require('../middleware/jwtUtils')
 const User = require('../models/user')
 const bcrypt = require('bcrypt')
+const jwt = require('jsonwebtoken')
 const router = require('express').Router()
 
 router.post('/signup', async (req, res) => {
@@ -28,18 +29,47 @@ router.post('/signup', async (req, res) => {
 router.post('/signin', async (req, res) => {
   try {
     const { username, password } = req.body
-    if (!username || !password)
+
+    if (!username || !password) {
       return res.status(400).json({ error: 'Missing required fields.' })
+    }
     const user = await User.findOne({ username })
-    if (!user) return res.status(400).json({ error: 'Bad request.' })
-    const matched = bcrypt.compareSync(password, user.password)
-    if (!matched) return res.status(400).json({ error: 'Bad request.' })
-    const token = signToken(user)
-    return res.status(201).json({ token })
+    if (!user) {
+      return res.status(401).json({ error: 'Invalid Credentials!' })
+    }
+    const matched = await bcrypt.compare(password, user.password)
+    if (!matched) {
+      return res.status(401).json({ error: 'Invalid Credentials!' })
+    }
+
+    const age = 1000 * 60 * 60 * 24 * 7
+    const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: '7d'
+    })
+
+    res
+      .cookie('token', token, {
+        httpOnly: true,
+        maxAge: age
+        // secure: true,
+      })
+      .status(200)
+      .json({ message: 'Signin Successfully' })
   } catch (error) {
     console.error(error)
-    res.status(500).json({ error: 'Something went wrong!' })
+    res.status(500).json({ error: 'Failed to Signin!' })
   }
 })
 
+router.post('/signout', async (req, res) => {
+  try {
+    res
+      .clearCookie('token')
+      .status(201)
+      .json({ error: 'Signout Successfully!' })
+  } catch (error) {
+    console.error(error)
+    res.status(500).json({ error: 'Failed to login!' })
+  }
+})
 module.exports = router
