@@ -1,26 +1,26 @@
 const jwt = require('jsonwebtoken')
 
 const signToken = (user) => {
-  const token = jwt.sign(
-    {
-      _id: user._id
-    },
-    process.env.JWT_SECRET
-  )
-  return token
+  return jwt.sign({ _id: user._id }, process.env.JWT_SECRET, {
+    expiresIn: '7d'
+  })
 }
 
 const verifyToken = (req, res, next) => {
+  const token =
+    req.cookies?.token || req.headers.authorization?.split('Bearer ')[1]
+  if (!token) {
+    return res.status(401).json({ error: 'Unauthorized. Token missing.' })
+  }
+
   try {
-    const token = req.headers.authorization.split('Bearer ')[1]
     const decoded = jwt.verify(token, process.env.JWT_SECRET)
     req.user = decoded
     next()
   } catch (error) {
-    res.status(401).json('Invalid token.')
+    console.error('JWT Verification Error:', error.message)
+    return res.status(401).json({ error: 'Unauthorized. Invalid token.' })
   }
 }
-module.exports = {
-  signToken,
-  verifyToken
-}
+
+module.exports = { signToken, verifyToken }
