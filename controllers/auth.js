@@ -47,8 +47,8 @@ router.post('/signin', async (req, res) => {
     const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, {
       expiresIn: '7d'
     })
-    const age = 1000 * 60 * 60 * 24 * 7 // 7 days
 
+    const age = 1000 * 60 * 60 * 24 * 7
     res
       .cookie('token', token, { httpOnly: true, maxAge: age })
       .status(200)

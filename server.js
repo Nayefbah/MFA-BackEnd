@@ -3,8 +3,11 @@ const express = require('express')
 const mongoose = require('mongoose')
 const cors = require('cors')
 const cookieParser = require('cookie-parser')
-const authRouter = require('./controllers/auth')
-const userRouter = require('./controllers/user')
+const authRoute = require('./controllers/auth')
+const userRoute = require('./controllers/user')
+const itemRoute = require('./controllers/item')
+const chatRoute = require('./controllers/chat')
+const messageRoute = require('./controllers/message')
 const { verifyToken } = require('./middleware/jwtUtils')
 
 const app = express()
@@ -19,14 +22,15 @@ app.use(express.json())
 app.use(cookieParser())
 app.use(cors({ origin: process.env.FRONT_END_URL, credentials: true }))
 
-app.use('/auth', authRouter)
-app.use('/user', verifyToken, userRouter)
+app.use('/auth', authRoute)
+app.use('/user', verifyToken, userRoute)
+app.use('/items', itemRoute)
+app.use('/chat', verifyToken, chatRoute)
+app.use('/message', verifyToken, messageRoute)
 
 app.use((err, req, res, next) => {
-  console.error(err.stack)
-  res
-    .status(err.status || 500)
-    .json({ error: err.message || 'Internal Server Error' })
+  console.error('Global Error:', err.message)
+  res.status(500).json({ success: false, error: 'Something went wrong.' })
 })
 
 app.listen(PORT, () => {
